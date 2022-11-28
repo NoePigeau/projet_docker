@@ -81,4 +81,25 @@ services:
         -  prowlarr
         -  radarr
         -  sonarr
+      
+      plex:
+        image: lscr.io/linuxserver/plex:latest
+        container_name: plex
+        network_mode: host
+        environment:
+          - PUID=1000
+          - PGID=1000
+          - VERSION=docker
+          # - PLEX_CLAIM= 
+        volumes:
+          - /plex/config:/config
+          - /plex/tvseries:/tv
+          - /plex/movies:/movies
+        restart: unless-stopped
+        depends_on:
+          -  overseerr
+          -  prowlarr
+          -  radarr
+          -  sonarr
+          -  bazarr
 
