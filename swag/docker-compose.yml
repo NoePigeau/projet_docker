@@ -1,0 +1,26 @@
+version: "2.1"
+services:
+  swag:
+    image: lscr.io/linuxserver/swag:latest
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=002
+      - TZ=${TZ}
+      - URL=${URL}
+      - VALIDATION=dns
+      - DNSPLUGIN=duckdns
+      - SUBDOMAINS=www,
+    volumes:
+      - /home/armanddfl/Docker/swag/config:/config
+    ports:
+      - 443:443
+    restart: unless-stopped
+    
+networks:
+  default:
+    name: personnal-netflix-network
+    external: true

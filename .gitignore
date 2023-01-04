@@ -4,3 +4,6 @@ sonarr
 bazarr
 overseer
 prowlarr
+.DS_Store
+personnal-netflix/.env
+swag/.env

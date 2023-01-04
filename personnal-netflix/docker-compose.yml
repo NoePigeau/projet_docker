@@ -1,0 +1,130 @@
+version: '3.9'
+services:
+    overseerr:
+      container_name: overseerr_container
+      image: lscr.io/linuxserver/overseerr:latest
+      environment:
+        - PUID=${PUID}
+        - PGID=${PGID}
+        - UMASK=002
+        - TZ=${TZ}
+      volumes:
+        - /home/armanddfl/Docker/personnal-netflix/overseerr/config:/config
+      ports:
+        - 5055:5055
+      restart: unless-stopped
+
+    prowlarr:
+      image: lscr.io/linuxserver/prowlarr:develop
+      container_name: prowlarr_container
+      environment:
+        - PUID=${PUID}
+        - PGID=${PGID}
+        - UMASK=002
+        - TZ=${TZ}
+      volumes:
+        - /home/armanddfl/Docker/personnal-netflix/prowlarr/config:/config     
+      ports:
+        - 9696:9696
+      restart: unless-stopped
+    
+    radarr:
+      image: lscr.io/linuxserver/radarr:latest
+      container_name: radarr_container
+      environment:
+        - PUID=${PUID}
+        - PGID=${PGID}
+        - UMASK=002
+        - TZ=${TZ}
+      volumes:
+        - /home/armanddfl/Docker/personnal-netflix/radarr/config:/config
+        - /home/armanddfl/Docker/personnal-netflix/media/librairies/movies:/movies 
+        - /home/armanddfl/Docker/personnal-netflix/media/downloads:/downloads
+      ports:
+        - 7878:7878
+      restart: unless-stopped
+      depends_on:
+        -  overseerr
+        -  prowlarr
+
+    sonarr:
+      image: lscr.io/linuxserver/sonarr:latest
+      container_name: sonarr_container
+      environment:
+        - PUID=${PUID}
+        - PGID=${PGID}
+        - UMASK=002
+        - TZ=${TZ}
+      volumes:
+        - /home/armanddfl/Docker/personnal-netflix/sonarr/config:/config
+        - /home/armanddfl/Docker/personnal-netflix/media/librairies/tvseries:/tv
+        - /home/armanddfl/Docker/personnal-netflix/media/downloads:/downloads
+      ports:
+        - 8989:8989
+      restart: unless-stopped
+      depends_on:
+        -  overseerr
+        -  prowlarr
+
+    bazarr:
+      image: lscr.io/linuxserver/bazarr:latest
+      container_name: bazarr_container
+      environment:
+        - PUID=${PUID}
+        - PGID=${PGID}
+        - UMASK=002
+        - TZ=${TZ}
+      volumes:
+        - /home/armanddfl/Docker/personnal-netflix/bazarr/config:/config
+        - /home/armanddfl/Docker/personnal-netflix/media/librairies/movies:/movies 
+        - /home/armanddfl/Docker/personnal-netflix/media/librairies/tvseries:/tv 
+      ports:
+        - 6767:6767
+      restart: unless-stopped
+      depends_on:
+        -  radarr
+        -  sonarr
+
+    deluge-openvpn:
+        image: armanddfl/docker-deluge-vpn:latest
+        volumes:
+            - /home/armanddfl/Docker/personnal-netflix/media/downloads:/downloads
+            - /home/armanddfl/Docker/personnal-netflix/deluge-vpn/config:/config
+        environment:
+            - PUID=${PUID}
+            - PGID=${PGID}
+            - UMASK=002
+            - OPENVPN_PROVIDER=${OPVPN_PROVIDER}
+            - OPENVPN_USERNAME=${OPVPN_USERNAME}
+            - OPENVPN_PASSWORD=${OPVPN_PASSWORD}
+            - LOCAL_NETWORK=${LOCAL_NETWORK}
+            - DELUGE_DOWNLOAD_DIR=/downloads/completed
+            - DELUGE_INCOMPLETE_DIR=/downloads/incomplete
+            - DELUGE_TORRENT_DIR=/downloads/torrents
+            - DELUGE_WATCH_DIR=/downloads/watch
+        cap_add:
+            - NET_ADMIN
+        sysctls:
+            - net.ipv6.conf.all.disable_ipv6=1
+        ports:
+            - '8112:8112'
+        
+    plex:
+      image: lscr.io/linuxserver/plex:latest
+      container_name: plex
+      network_mode: host  
+      environment:
+        - PUID=${PUID}
+        - PGID=${PGID}
+        - UMASK=002
+        - VERSION=docker
+      volumes:
+        - /home/armanddfl/Docker/personnal-netflix/plex/config:/config
+        - /home/armanddfl/Docker/personnal-netflix/media/librairies/tvseries:/tv
+        - /home/armanddfl/Docker/personnal-netflix/media/librairies/movies:/movies
+      restart: unless-stopped
+      
+networks:
+  default:
+    name: personnal-netflix-network
+    external: true
